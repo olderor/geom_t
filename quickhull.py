@@ -7,32 +7,17 @@ class Point:
         return (line.begin.x - self.x) * (line.end.y - self.y) - \
                (line.end.x - self.x) * (line.begin.y - self.y)
 
-    def add(self, x, y):
-        return Point(self.x + x, self.y + y)
-
     def is_right(self, line):
         return self.distance_to_line(line) < 0
-
-    def is_left(self, line):
-        return self.distance_to_line(line) > 0
 
     def __str__(self):
         return '{ ' + str(self.x) + ', ' + str(self.y) + ' }'
 
-    def __lt__(self, other):
-        return self.x < other.x or self.x == other.x and self.y < other.y
-
-    def __gt__(self, other):
-        return other < self
-
-    def __eq__(self, other):
-        return self.x == self.x and self.y == self.y
-
-    def __le__(self, other):
-        return self < other or self == other
-
-    def __ge__(self, other):
-        return self > other or self == other
+    @staticmethod
+    def is_clockwise_order(a, b, c):
+        return a.x * (b.y - c.y) + \
+            b.x * (c.y - a.y) + \
+            c.x * (a.y - b.y) < 0
 
 
 class Line:
@@ -41,20 +26,11 @@ class Line:
         self.end = end
 
 
-def clockwise(a, b, c):
-    return a.x * (b.y - c.y) + \
-        b.x * (c.y - a.y) + \
-        c.x * (a.y - b.y) < 0
-
-
 class QuickHull:
 
     def __init__(self, points):
         self.points = points
         self.hull_size = 0
-
-    def __len__(self):
-        return self.hull_size
 
     def _add_point_to_hull(self, point_index):
         self.points[point_index], self.points[self.hull_size] = \
@@ -86,9 +62,9 @@ class QuickHull:
     def _find_nearest_point(self, point):
         nearest_point_index = 1
         for i in range(2, len(self.points)):
-            if not clockwise(self.points[point],
-                             self.points[nearest_point_index],
-                             self.points[i]):
+            if not Point.is_clockwise_order(self.points[point],
+                                            self.points[nearest_point_index],
+                                            self.points[i]):
                 nearest_point_index = i
         return nearest_point_index
 
@@ -141,22 +117,26 @@ class QuickHull:
         self._add_point_to_hull(length - 1)
 
 
-input = open('input.txt', 'r')
-output = open('output.txt', 'w')
+def _test():
+    input = open('input.txt', 'r')
+    output = open('output.txt', 'w')
 
-n = int(input.readline())
-points = []
-for i in range(n):
-    x, y = map(int, input.readline().split())
-    points.append(Point(x, y))
+    n = int(input.readline())
+    points = []
+    for i in range(n):
+        x, y = map(int, input.readline().split())
+        points.append(Point(x, y))
 
-q = QuickHull(points)
-q.calculate()
+    q = QuickHull(points)
+    q.calculate()
 
-output.writelines(str(q.hull_size) + '\n')
-for i in range(q.hull_size):
-    output.writelines(str(int(q.points[i].x)) + ' ' +
-                      str(int(q.points[i].y)) + '\n')
+    output.writelines(str(q.hull_size) + '\n')
+    for i in range(q.hull_size):
+        output.writelines(str(int(q.points[i].x)) + ' ' +
+                          str(int(q.points[i].y)) + '\n')
 
-input.close()
-output.close()
+    input.close()
+    output.close()
+
+# _test()
+
